@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import User from "../models/user.model";
+import userModel from "../models/user.model";
 import { generateToken } from "../utils/jwt";
 import { AuthRequest } from "../types/AuthRequest";
+import ApiError from "../utils/apiError";
 
 export const registerUser = async (
   req: Request,
@@ -12,15 +13,17 @@ export const registerUser = async (
     const { name, email, password, role } = req.body;
 
     if (!name || !email || !password || !role) {
-      return res.status(400).json({ message: "All fields are required." });
+      throw new ApiError(404, "All fields are required.");
     }
 
-    const userExists = await User.findOne({ email });
+    const userExists = await userModel.findOne({ email });
     if (userExists) {
-      return res.status(400).json({ message: "User already exists." });
+      throw new ApiError(400, "User already exists.");
     }
 
-    const user = await User.create({ name, email, password, role });
+    const user = await userModel.create({ name, email, password, role });
+    console.log("Cretaing user:", user);
+
     const token = generateToken(user._id as string);
 
     return res.status(201).json({
@@ -43,22 +46,23 @@ export const loginUser = async (
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).json({ message: "All fields are required." });
+      throw new ApiError(400, "All fields are required.");
     }
 
-    const user = await User.findOne({ email });
+    const user = await userModel.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: "Invalid credentials." });
+      throw new ApiError(400, "Invalid credentials.");
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials." });
+      throw new ApiError(400, "Invalid credentials.");
     }
 
     const token = generateToken(user._id as string);
 
     return res.status(200).json({
+      success: true,
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -76,7 +80,9 @@ export const logoutUser = async (
   next: NextFunction
 ): Promise<any> => {
   try {
-    return res.status(200).json({ message: "Logged out successfully." });
+    return res
+      .status(200)
+      .json({ success: true, message: "Logged out successfully." });
   } catch (error) {
     next(error);
   }
@@ -88,12 +94,12 @@ export const getUserProfile = async (
   next: NextFunction
 ): Promise<any> => {
   try {
-    const user = await User.findById(req.user._id).select("-password");
+    const user = await userModel.findById(req.user._id).select("-password");
     if (!user) {
-      return res.status(404).json({ message: "User not found." });
+      throw new ApiError(404, "User not found.");
     }
 
-    return res.status(200).json(user);
+    return res.status(200).json({ success: true, user });
   } catch (error) {
     next(error);
   }
@@ -106,9 +112,9 @@ export const updateUserProfile = async (
 ): Promise<any> => {
   try {
     const { name, email, password } = req.body;
-    const user = await User.findById(req.user._id).select("-password");
+    const user = await userModel.findById(req.user._id).select("-password");
     if (!user) {
-      return res.status(404).json({ message: "User not found." });
+      throw new ApiError(404, "User not found.");
     }
 
     if (name) user.name = name;
@@ -117,7 +123,7 @@ export const updateUserProfile = async (
 
     await user.save();
 
-    return res.status(200).json(user);
+    return res.status(200).json({ success: true, user });
   } catch (error) {
     next(error);
   }
@@ -129,13 +135,15 @@ export const deleteUserProfile = async (
   next: NextFunction
 ): Promise<any> => {
   try {
-    const user = await User.findById(req.user._id).select("-password");
+    const user = await userModel.findById(req.user._id).select("-password");
     if (!user) {
-      return res.status(404).json({ message: "User not found." });
+      throw new ApiError(404, "User not found.");
     }
 
     await user.deleteOne({ _id: req.user._id });
-    return res.status(200).json({ message: "User deleted successfully." });
+    return res
+      .status(200)
+      .json({ success: true, message: "User deleted successfully." });
   } catch (error) {
     next(error);
   }
@@ -147,8 +155,8 @@ export const getAllUsers = async (
   next: NextFunction
 ): Promise<any> => {
   try {
-    const users = await User.find().select("-password");
-    return res.status(200).json(users);
+    const users = await userModel.find().select("-password");
+    return res.status(200).json({ success: true, users });
   } catch (error) {
     next(error);
   }
@@ -160,12 +168,12 @@ export const getUserById = async (
   next: NextFunction
 ): Promise<any> => {
   try {
-    const user = await User.findById(req.params.id).select("-password");
+    const user = await userModel.findById(req.params.id).select("-password");
     if (!user) {
-      return res.status(404).json({ message: "User not found." });
+      throw new ApiError(404, "User not found.");
     }
 
-    return res.status(200).json(user);
+    return res.status(200).json({ success: true, user });
   } catch (error) {
     next(error);
   }
@@ -178,9 +186,9 @@ export const updateUserById = async (
 ): Promise<any> => {
   try {
     const { name, email, password, role } = req.body;
-    const user = await User.findById(req.params.id).select("-password");
+    const user = await userModel.findById(req.params.id).select("-password");
     if (!user) {
-      return res.status(404).json({ message: "User not found." });
+      throw new ApiError(404, "User not found.");
     }
 
     if (name) user.name = name;
@@ -190,7 +198,7 @@ export const updateUserById = async (
 
     await user.save();
 
-    return res.status(200).json(user);
+    return res.status(200).json({ success: true, user });
   } catch (error) {
     next(error);
   }
@@ -202,14 +210,16 @@ export const deleteUserById = async (
   next: NextFunction
 ): Promise<any> => {
   try {
-    const user = await User.findById(req.params.id).select("-password");
+    const user = await userModel.findById(req.params.id).select("-password");
     if (!user) {
-      return res.status(404).json({ message: "User not found." });
+      throw new ApiError(404, "User not found.");
     }
 
     await user.deleteOne({ _id: req.params.id });
 
-    return res.status(200).json({ message: "User deleted successfully." });
+    return res
+      .status(200)
+      .json({ success: true, message: "User deleted successfully." });
   } catch (error) {
     next(error);
   }
@@ -221,12 +231,12 @@ export const getUserRole = async (
   next: NextFunction
 ): Promise<any> => {
   try {
-    const user = await User.findById(req.user._id).select("role");
+    const user = await userModel.findById(req.user._id).select("role");
     if (!user) {
-      return res.status(404).json({ message: "User not found." });
+      throw new ApiError(404, "User not found.");
     }
 
-    return res.status(200).json({ role: user.role });
+    return res.status(200).json({ success: true, role: user.role });
   } catch (error) {
     next(error);
   }
@@ -239,61 +249,17 @@ export const updateUserRole = async (
 ): Promise<any> => {
   try {
     const { role } = req.body;
-    const user = await User.findById(req.user._id).select("role");
+    const user = await userModel.findById(req.user._id).select("role");
     if (!user) {
-      return res.status(404).json({ message: "User not found." });
+      throw new ApiError(404, "User not found.");
     }
 
     user.role = role;
     await user.save();
 
-    return res.status(200).json({ message: "User role updated successfully." });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const getUserByEmail = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<any> => {
-  try {
-    const user = await User.findOne({ email: req.params.email }).select(
-      "-password"
-    );
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-
-    return res.status(200).json(user);
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const updateUserByEmail = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<any> => {
-  try {
-    const { name, email, password, role } = req.body;
-    const user = await User.findOne({ email: req.params.email }).select(
-      "-password"
-    );
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-
-    if (name) user.name = name;
-    if (email) user.email = email;
-    if (password) user.password = password;
-    if (role) user.role = role;
-
-    await user.save();
-
-    return res.status(200).json(user);
+    return res
+      .status(200)
+      .json({ success: true, message: "User role updated successfully." });
   } catch (error) {
     next(error);
   }

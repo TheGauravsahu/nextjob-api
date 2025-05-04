@@ -20,6 +20,7 @@ export const authMiddleware = async (
     const decoded = verifyToken(token) as { id: string } | null;
 
     const user = await User.findById(decoded?.id).select("-password");
+
     if (!user) {
       return res.status(401).json({ message: "Unauthorized: User not found" });
     }

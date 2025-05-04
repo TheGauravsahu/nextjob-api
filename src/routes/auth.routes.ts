@@ -22,8 +22,4 @@ router.get("/:id", authMiddleware, authController.getUserById);
 router.put("/:id", authMiddleware, authController.updateUserById);
 router.delete("/:id", authMiddleware, authController.deleteUserById);
 
-// Email-based routes
-router.get("/email/:email", authMiddleware, authController.getUserByEmail);
-router.put("/email/:email", authMiddleware, authController.updateUserByEmail);
-
 export default router;

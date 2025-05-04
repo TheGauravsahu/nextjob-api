@@ -8,12 +8,11 @@ export const registerUser = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<any> => {
+) => {
   try {
     const { name, email, password, role } = req.body;
-
-    if (!name || !email || !password || !role) {
-      throw new ApiError(404, "All fields are required.");
+    if (!name || !email || !password) {
+      throw new ApiError(400, "All fields are required.");
     }
 
     const userExists = await userModel.findOne({ email });
@@ -27,11 +26,15 @@ export const registerUser = async (
     const token = generateToken(user._id as string);
 
     return res.status(201).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      token,
+      success: true,
+      message: "User registered successfully",
+      data: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        token,
+      },
     });
   } catch (error) {
     next(error);
@@ -42,7 +45,7 @@ export const loginUser = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<any> => {
+) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -78,7 +81,7 @@ export const logoutUser = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<any> => {
+) => {
   try {
     return res
       .status(200)
@@ -92,7 +95,7 @@ export const getUserProfile = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-): Promise<any> => {
+) => {
   try {
     const user = await userModel.findById(req.user._id).select("-password");
     if (!user) {
@@ -109,7 +112,7 @@ export const updateUserProfile = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-): Promise<any> => {
+) => {
   try {
     const { name, email, password } = req.body;
     const user = await userModel.findById(req.user._id).select("-password");
@@ -133,7 +136,7 @@ export const deleteUserProfile = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-): Promise<any> => {
+) => {
   try {
     const user = await userModel.findById(req.user._id).select("-password");
     if (!user) {
@@ -153,7 +156,7 @@ export const getAllUsers = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<any> => {
+) => {
   try {
     const users = await userModel.find().select("-password");
     return res.status(200).json({ success: true, users });
@@ -166,7 +169,7 @@ export const getUserById = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<any> => {
+) => {
   try {
     const user = await userModel.findById(req.params.id).select("-password");
     if (!user) {
@@ -183,7 +186,7 @@ export const updateUserById = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<any> => {
+) => {
   try {
     const { name, email, password, role } = req.body;
     const user = await userModel.findById(req.params.id).select("-password");
@@ -208,7 +211,7 @@ export const deleteUserById = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<any> => {
+) => {
   try {
     const user = await userModel.findById(req.params.id).select("-password");
     if (!user) {
@@ -229,7 +232,7 @@ export const getUserRole = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-): Promise<any> => {
+) => {
   try {
     const user = await userModel.findById(req.user._id).select("role");
     if (!user) {
@@ -246,7 +249,7 @@ export const updateUserRole = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
-): Promise<any> => {
+) => {
   try {
     const { role } = req.body;
     const user = await userModel.findById(req.user._id).select("role");

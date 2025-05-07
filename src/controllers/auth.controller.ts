@@ -3,6 +3,7 @@ import userModel from "../models/user.model";
 import { generateToken } from "../utils/jwt";
 import { AuthRequest } from "../types/AuthRequest";
 import ApiError from "../utils/apiError";
+import { createAndSendOtp, verifyOtp } from "../utils/otp";
 
 export const registerUser = async (
   req: Request,
@@ -23,7 +24,7 @@ export const registerUser = async (
     const user = await userModel.create({ name, email, password, role });
     console.log("Cretaing user:", user);
 
-    const token = generateToken(user._id as string);
+    await createAndSendOtp(email);
 
     return res.status(201).json({
       success: true,
@@ -33,9 +34,25 @@ export const registerUser = async (
         name: user.name,
         email: user.email,
         role: user.role,
-        token,
       },
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verifyEmailOtp = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, otp } = req.body;
+    await verifyOtp(email, otp);
+    await userModel.findOneAndUpdate({ email }, { isVerified: true });
+    return res
+      .status(200)
+      .json({ success: true, message: "OTP verified successfully." });
   } catch (error) {
     next(error);
   }

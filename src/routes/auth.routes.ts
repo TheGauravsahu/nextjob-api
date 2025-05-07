@@ -3,7 +3,11 @@ import * as authController from "../controllers/auth.controller";
 import { authMiddleware } from "../middleware/auth.middleware";
 import asyncWrapper from "../utils/asyncWrapper";
 import validateMiddleware from "../middleware/validate.middleware";
-import { createUserSchema, loginUserSchema } from "../validators/user.schema";
+import {
+  createUserSchema,
+  loginUserSchema,
+  verifyEmailSchema,
+} from "../validators/auth.schema";
 
 const router = Router();
 
@@ -12,6 +16,12 @@ router.post(
   "/register",
   validateMiddleware(createUserSchema),
   asyncWrapper(authController.registerUser)
+);
+
+router.post(
+  "/verify-email",
+  validateMiddleware(verifyEmailSchema),
+  asyncWrapper(authController.verifyEmailOtp)
 );
 
 router.post(

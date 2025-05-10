@@ -4,6 +4,7 @@ import errorMiddleware from "./src/middleware/error.middleware";
 import authRoutes from "./src/routes/auth.routes";
 import jobRoutes from "./src/routes/job.routes";
 import homeRoute from "./src/routes/home.route";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/", homeRoute);
 app.use("/api/auth", authRoutes);

@@ -11,7 +11,9 @@ export const getAllJobs = async (
   try {
     const jobs = await jobModel
       .find()
-      .populate("employer", "name email role")
+      .select(
+        "title skills salary company employmentType workplaceType createdAt"
+      )
       .sort({ createdAt: -1 });
 
     return res.status(200).json({
@@ -149,7 +151,6 @@ export const deleteJobById = async (
     return res.status(200).json({
       success: true,
       message: "Job deleted successfully",
-      data: job,
     });
   } catch (error) {
     next(error);

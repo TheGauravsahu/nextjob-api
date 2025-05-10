@@ -81,13 +81,26 @@ export const loginUser = async (
 
     const token = generateToken(user._id as string);
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
     return res.status(200).json({
       success: true,
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      token,
+      message: "Logged in successfully.",
+      data: {
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          isVerified: user.isVerified,
+        },
+        token,
+      },
     });
   } catch (error) {
     next(error);
@@ -100,6 +113,12 @@ export const logoutUser = async (
   next: NextFunction
 ) => {
   try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
     return res
       .status(200)
       .json({ success: true, message: "Logged out successfully." });
@@ -119,7 +138,7 @@ export const getUserProfile = async (
       throw new ApiError(404, "User not found.");
     }
 
-    return res.status(200).json({ success: true, user });
+    return res.status(200).json({ success: true, data: { user } });
   } catch (error) {
     next(error);
   }
@@ -131,19 +150,15 @@ export const updateUserProfile = async (
   next: NextFunction
 ) => {
   try {
-    const { name, email, password } = req.body;
-    const user = await userModel.findById(req.user._id).select("-password");
+    const { name, email, role } = req.body;
+    const user = await userModel
+      .findByIdAndUpdate(req.user._id, { name, email, role }, { new: true })
+      .select("-password");
+    console.log("Updating user:", user);
     if (!user) {
       throw new ApiError(404, "User not found.");
     }
-
-    if (name) user.name = name;
-    if (email) user.email = email;
-    if (password) user.password = password;
-
-    await user.save();
-
-    return res.status(200).json({ success: true, user });
+    return res.status(200).json({ success: true, data: { user } });
   } catch (error) {
     next(error);
   }

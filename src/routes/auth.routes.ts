@@ -6,6 +6,7 @@ import validateMiddleware from "../middleware/validate.middleware";
 import {
   createUserSchema,
   loginUserSchema,
+  updateUserSchema,
   verifyEmailSchema,
 } from "../validators/auth.schema";
 
@@ -37,6 +38,7 @@ router.get("/me", authMiddleware, asyncWrapper(authController.getUserProfile));
 router.put(
   "/me",
   authMiddleware,
+  validateMiddleware(updateUserSchema),
   asyncWrapper(authController.updateUserProfile)
 );
 router.delete(

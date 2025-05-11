@@ -81,13 +81,13 @@ export const loginUser = async (
 
     const token = generateToken(user._id as string);
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    // res.cookie("token", token, {
+    //   httpOnly: true,
+    //   secure: true,
+    //   sameSite: "none",
+    //   path: "/",
+    //   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    // });
 
     return res.status(200).json({
       success: true,

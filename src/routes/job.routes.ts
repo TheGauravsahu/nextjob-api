@@ -9,6 +9,17 @@ const router = Router();
 
 router.get("/", asyncWrapper(jobController.getAllJobs));
 
+router.get(
+  "/employer-jobs",
+  authMiddleware,
+  asyncWrapper(jobController.getAllEmployerJobs)
+);
+router.get(
+  "/user-jobs",
+  authMiddleware,
+  asyncWrapper(jobController.getAllUserAppliedJobs)
+);
+
 router.get("/:id", authMiddleware, asyncWrapper(jobController.getJobById));
 router.delete(
   "/:id",

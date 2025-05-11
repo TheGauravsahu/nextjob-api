@@ -2,6 +2,7 @@ import { Response, NextFunction } from "express";
 import jobModel from "../models/job.model";
 import { AuthRequest } from "../types/AuthRequest";
 import ApiError from "../utils/apiError";
+import userModel from "../models/user.model";
 
 export const getAllJobs = async (
   req: AuthRequest,
@@ -187,6 +188,45 @@ export const applyToJob = async (
     return res.status(200).json({
       success: true,
       message: "Applied to job successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllEmployerJobs = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user.id;
+    const jobs = await jobModel.find({ employer: userId });
+
+    return res.status(200).json({
+      success: true,
+      message: "Successfully fetched employer jobs.",
+      data: jobs,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAllUserAppliedJobs = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user.id;
+
+    const jobs = await jobModel.find({ appliedCandidates: userId });
+
+    return res.status(200).json({
+      success: true,
+      message: "Successfully fetched applied jobs.",
+      data: jobs,
     });
   } catch (error) {
     next(error);

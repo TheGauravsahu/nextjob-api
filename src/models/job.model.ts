@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import { IJob } from "../types/JobTypes";
 
-
 const jobSchema = new mongoose.Schema<IJob>(
   {
     title: { type: String, required: true },
@@ -32,6 +31,12 @@ const jobSchema = new mongoose.Schema<IJob>(
       ref: "users",
       required: true,
     },
+    appliedCandidates: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "users",
+      },
+    ],
   },
   { timestamps: true }
 );

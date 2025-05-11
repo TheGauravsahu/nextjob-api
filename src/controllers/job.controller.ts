@@ -41,10 +41,12 @@ export const getJobById = async (
       throw new ApiError(404, "Job not found");
     }
 
+    const hasApplied = job.appliedCandidates.includes(req.user.id);
+
     return res.status(200).json({
       success: true,
       message: "Job fetched successfully",
-      data: job,
+      data: { job, hasApplied },
     });
   } catch (error) {
     next(error);
@@ -151,6 +153,69 @@ export const deleteJobById = async (
     return res.status(200).json({
       success: true,
       message: "Job deleted successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const applyToJob = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const jobId = req.params.id;
+    const userId = req.user.id;
+    const job = await jobModel.findById(jobId);
+    if (!job) {
+      throw new ApiError(404, "Job not found");
+    }
+
+    if (job.employer.toString() === userId) {
+      throw new ApiError(400, "You cannot apply to your own job");
+    }
+
+    // Prevent duplicate applications
+    const alreadyApplied = job.appliedCandidates.includes(userId);
+    if (alreadyApplied) throw new ApiError(400, "Already applied to this job");
+
+    job.appliedCandidates.push(userId);
+    console.log("Applying to job:", job);
+
+    await job.save();
+    return res.status(200).json({
+      success: true,
+      message: "Applied to job successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+//  (Employers)
+export const getApplicantsForJob = async (
+  req: AuthRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const jobId = req.params.id;
+    const employerId = req.user.id;
+
+    const job = await jobModel
+      .findOne({
+        _id: jobId,
+        employer: employerId,
+      })
+      .populate("appliedCandidates", "name email role", "-password");
+
+    if (!job) throw new ApiError(404, "Job not found or not owned by you");
+
+    return res.status(200).json({
+      success: true,
+      message: "Applicants fetched successfully",
+      data: job.appliedCandidates,
     });
   } catch (error) {
     next(error);

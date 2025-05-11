@@ -30,4 +30,18 @@ router.put(
   asyncWrapper(jobController.updateJobById)
 );
 
+// Apply to a job (USER)
+router.post(
+  "/:id/apply",
+  authMiddleware,
+  asyncWrapper(jobController.applyToJob)
+);
+
+// View applicants (EMPLOYER)
+router.get(
+  "/:id/applicants",
+  authMiddleware,
+  asyncWrapper(jobController.getApplicantsForJob)
+);
+
 export default router;

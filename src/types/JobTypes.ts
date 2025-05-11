@@ -22,4 +22,5 @@ export interface IJob {
     location: string;
   };
   employer: mongoose.Types.ObjectId;
+  appliedCandidates: mongoose.Types.ObjectId[];
 }

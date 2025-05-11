@@ -114,11 +114,11 @@ export const logoutUser = async (
   next: NextFunction
 ) => {
   try {
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
+    // res.clearCookie("token", {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: "strict",
+    // });
 
     return res
       .status(200)

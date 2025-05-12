@@ -248,7 +248,7 @@ export const getApplicantsForJob = async (
         _id: jobId,
         employer: employerId,
       })
-      .populate("appliedCandidates", "name email role", "-password");
+      .populate("appliedCandidates", "name email role");
 
     if (!job) throw new ApiError(404, "Job not found or not owned by you");
 
